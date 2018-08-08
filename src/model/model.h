@@ -31,7 +31,6 @@ public:
     Model(string const &path, bool gamma = false) : gammaCorrection(gamma) {
 
         loadModel(path);
-		meshes[3].transform = glm::rotate(meshes[3].transform, 0.5f, glm::vec3(0.0f, 0.0f, 1.0f));
     }
 
 
@@ -47,20 +46,18 @@ public:
 
 		glm::mat4 chain_tf = this->transform;
 
-        for(unsigned int i = 0; i < meshes.size(); i++) {
 
-			chain_tf = chain_tf * meshes[i].transform;
-			meshes[i].Draw(shader, chain_tf);
+        for(unsigned int ilink = 0; ilink < meshes.size(); ilink++) {
+
+			if (ilink != meshes.size() - 1)
+				chain_tf = chain_tf * meshes[ilink].transform;
+
+			if (ilink > 0 && ilink < 7)
+				chain_tf = chain_tf * (*kinematic_chain)[ilink - 1];
+
+			meshes[ilink].Draw(shader, chain_tf);
 		}
 
-		/*
-		chain_tf = meshes[0].transform;
-		meshes[0].Draw(shader, chain_tf);
-
-		chain_tf = chain_tf * meshes[1].transform;
-		meshes[1].Draw(shader, chain_tf);
-		*/
-		
 		shader->Unbind();
     }
     
@@ -98,12 +95,6 @@ private:
 				node_tf[j][i] = node->mTransformation[i][j];
 		}
 
-		std::cout << "processing node: " << node->mName.C_Str();
-		if (node->mParent == NULL) std::cout << " [root]";
-		std::cout << std::endl;
-		std::cout << "\t n children: " << node->mNumChildren << std::endl;
-		std::cout << "\t n meshes: " << node->mNumMeshes << std::endl;
-
         for(unsigned int i = 0; i < node->mNumMeshes; i++) {
 
             aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
@@ -113,10 +104,8 @@ private:
             meshes.push_back(mesh);
         }
 
-        for(unsigned int i = 0; i < node->mNumChildren; i++) {
-
+        for(unsigned int i = 0; i < node->mNumChildren; i++)
 			processNode(node->mChildren[i], scene, glm::mat4(1.0f));
-		}
     }
 
     Mesh processMesh(aiMesh *mesh, const aiScene *scene) {

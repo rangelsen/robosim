@@ -19,7 +19,7 @@
 int main(int argc, char** argv) {
 
 	static const unsigned int N_JOINTS = 7;
-	float q[N_JOINTS] = {1.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+	float q[N_JOINTS] = {0.0f, -1.0f, 0.0f, -2.6f, 0.0f, -1.57f, 0.0f};
 
 	Display* display = new Display();
 

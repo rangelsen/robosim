@@ -1,7 +1,7 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
-#include <eigen3/Eigen/Eigen>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
 typedef enum {

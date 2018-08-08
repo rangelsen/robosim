@@ -34,8 +34,8 @@ vec3 GetSpecularColor() {
 ////////////////////////////////////////////////////////////////////////////////
 vec3 GetDiffuseColor() {
 
-    vec3 light_dir = normalize(light_source_pos - position);
-    float d = max(dot(light_dir, normal), 0.0);
+    vec3 light_dir = normalize(light_source_pos - vec3(model * vec4(position, 1.0)));
+    float d = max(dot(light_dir, vec3(model * vec4(normal, 0.0))), 0.0);
     vec3 diffuse = d * light_color_diffuse;
     return diffuse;
 }
@@ -44,14 +44,16 @@ vec3 GetDiffuseColor() {
 void main() {
 
 	mat4 mvp = view_proj * model;
-	vec3 color = vec3(0.7, 0.7, 0.7);
+    gl_Position = mvp * vec4(position, 1.0);
+
+	vec3 color = vec3(0.7);
     material_color_vsout = vec4(color, 1.0);
     color_ambient_vsout = vec4(light_color_ambient, 1.0);
     color_diffuse_vsout = vec4(GetDiffuseColor(), 1.0);
-    color_specular_vsout = vec4(GetSpecularColor(), 1.0);
+    // color_specular_vsout = vec4(GetSpecularColor(), 1.0);
+	color_specular_vsout = vec4(0.0);
 
     tex_coord_vsout = tex_coord;    
-    gl_Position = mvp * vec4(position, 1.0);
 }
 
 /// @file
