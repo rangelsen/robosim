@@ -27,7 +27,7 @@ public:
 	Mesh() { };
     Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures) {
 
-		this->transform = glm::mat4(1.0f);
+		// std::cout << "setting mesh tf: " << glm::to_string(this->transform) << std::endl;
         this->vertices = vertices;
         this->indices = indices;
         this->textures = textures;
@@ -61,8 +61,7 @@ public:
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }
 
-		glm::mat4 mesh_tf = model_mat * transform;
-		glUniformMatrix4fv(glGetUniformLocation(shader->Id(), "model"), 1, GL_FALSE, &mesh_tf[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(shader->Id(), "model"), 1, GL_FALSE, &model_mat[0][0]);
         
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
