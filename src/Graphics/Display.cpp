@@ -4,6 +4,9 @@
 
 #include "Display.hpp"
 #include "DisplaySettings.hpp"
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_opengl3.h>
+#include <imgui/imgui_impl_sdl.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 Display::Display() {
@@ -42,20 +45,21 @@ Display::Display() {
 
     window_is_closed_ = false;
 
-    glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
-
-    /* Prevent faces behind other faces from being rendered */
+	/* Prevent faces behind other faces from being rendered */
     glEnable(GL_DEPTH_TEST);
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    /* Enable backface culling */
-    /*
-    glEnable(GL_CULL_FACE);
-    glFrontFace(GL_CW);
-    glCullFace(GL_BACK);
-    */
+    // Setup Dear ImGui binding
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+
+    ImGui_ImplSDL2_InitForOpenGL(window_, context_);
+    ImGui_ImplOpenGL3_Init("#version 130");
+
+    glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

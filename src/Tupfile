@@ -1,2 +1,2 @@
 include_rules
-: foreach *.c *.cpp |> !cc |> $(BUILD_DIR)/%B.o $(ROOT_DIR)/<reconstruction>
+: foreach *.c *.cpp |> !cc |> $(BUILD_DIR)/%B.o $(ROOT_DIR)/<main>
