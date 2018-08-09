@@ -19,7 +19,7 @@
 #include <imgui/imgui_impl_opengl3.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-void render_gui(SDL_Window* window, float* q, float* q_lower, float* q_upper, int n_joints) {
+void render_gui(SDL_Window* window, float* q, float* q_min, float* q_max, int n_joints) {
 
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(window);
@@ -30,8 +30,12 @@ void render_gui(SDL_Window* window, float* q, float* q_lower, float* q_upper, in
 	for (int i = 0; i < n_joints; i++) {
 
 		ImGui::Text("Joint %d: %f", i, q[i]);
-		ImGui::SliderFloat("joint", &q[i], q_lower[i], q_upper[i]);
+
+		char slider_label[64];
+		sprintf(slider_label, "joint %d", i + 1);
+		ImGui::SliderFloat(slider_label, &q[i], q_min[i], q_max[i]);
 	}
+
 	ImGui::End();
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -42,8 +46,8 @@ int main(int argc, char** argv) {
 
 	static const unsigned int N_JOINTS = 7;
 	float q[N_JOINTS] = {0.0f, -1.0f, 0.0f, -2.6f, 0.0f, -1.57f, 0.0f};
-	float q_LOWER[N_JOINTS] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-	float q_UPPER[N_JOINTS] = {3.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+	float q_MIN[N_JOINTS] = {-2.8973, -1.7628, -3.0718, -2.8973, -0.0175, -2.8973};
+	float q_MAX[N_JOINTS] = {2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973};
 
 	Display* display = new Display();
 
@@ -64,7 +68,7 @@ int main(int argc, char** argv) {
 
 		panda_model.Draw(panda_shader, vcamera, &kinematic_chain);
 
-		render_gui(display->WindowHandle(), q, q_LOWER, q_UPPER, N_JOINTS);
+		render_gui(display->WindowHandle(), q, q_MIN, q_MAX, N_JOINTS);
 
 		display->Update();
 	}

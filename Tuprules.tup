@@ -18,10 +18,10 @@ endif
 CC  = gcc
 CXX = g++
 
-CFLAGS  = -Wall -g -I$(SOURCE_DIR) -I$(LIB_SRC_DIR) -I/usr/local/include/pcl-1.7 -fPIC
+CFLAGS  = -Wall -g -I$(SOURCE_DIR) -I$(LIB_SRC_DIR)
 
 LDFLAGS += -lSDL2 -lGLEW -lGL -lassimp -lSOIL
-LDFLAGS += -L$(BIN_DIR)
+# LDFLAGS += -L$(BIN_DIR)
 
 # Macros
 !cc = |> $(CXX) -std=c++11 $(CFLAGS) -c %f -o %o |> %B.o
