@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <GL/glew.h>
+#include <pthread.h>
 
 #include <Graphics/Display.hpp>
 #include <Graphics/Camera.hpp>
@@ -17,9 +18,18 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_sdl.h>
 #include <imgui/imgui_impl_opengl3.h>
+#include <zmq.hpp>
+
+////////////////////////////////////////////////////////////////////////////////
+#define N_JOINTS 7
+
+static float q_[N_JOINTS] = {0.0f, -1.0f, 0.0f, -2.6f, 0.0f, -1.57f, 0.0f};
+static const float q_MIN_[N_JOINTS]   = {-2.8973, -1.7628, -3.0718, -2.8973, -0.0175, -2.8973};
+static const float q_MAX_[N_JOINTS]   = {2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973};
+static bool is_running_ = true;
 
 ///////////////////////////////////////////////////////////////////////////////
-void render_gui(SDL_Window* window, float* q, float* q_min, float* q_max, int n_joints) {
+void render_gui(SDL_Window* window, float* q, const float* q_min, const float* q_max, int n_joints) {
 
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(window);
@@ -42,12 +52,52 @@ void render_gui(SDL_Window* window, float* q, float* q_min, float* q_max, int n_
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void* read_joints(void* arg) {
+
+	zmq::context_t zmq_ctx(1);
+	zmq::socket_t zmq_socket(zmq_ctx, ZMQ_SUB);
+	zmq_socket.setsockopt(ZMQ_SUBSCRIBE, "joint", 5);
+	// zmq_socket.connect("ipc:///tmp/socket");
+	zmq_socket.connect("tcp://127.0.0.1:5555");
+
+	printf("Communication set up\n");
+
+	while (is_running_) {
+
+		zmq::message_t msg;
+		zmq_socket.recv(&msg);
+
+		char msg_buffer[512];
+		memset(msg_buffer, 0, 512);
+		memcpy(msg_buffer, (char*) msg.data(), msg.size() + 1);
+		msg_buffer[msg.size()] = '\0';
+		printf("recv msg: %s\n", msg_buffer);
+
+		if (strcmp(msg_buffer, "exit") == 0) {
+
+			is_running_ = false;
+			break;
+		}
+
+		char* str = strtok(msg_buffer, ",");
+
+		for (int i = 0; i < N_JOINTS; i++) {
+
+			printf("str: %s\n", str);
+			str = strtok(NULL, ",");
+		}
+
+		float* q = (float*) arg;
+	}
+
+	return NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char** argv) {
 
-	static const unsigned int N_JOINTS = 7;
-	float q[N_JOINTS] = {0.0f, -1.0f, 0.0f, -2.6f, 0.0f, -1.57f, 0.0f};
-	float q_MIN[N_JOINTS] = {-2.8973, -1.7628, -3.0718, -2.8973, -0.0175, -2.8973};
-	float q_MAX[N_JOINTS] = {2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973};
+	pthread_t comm_thread;
+	pthread_create(&comm_thread, NULL, read_joints, q_);
 
 	Display* display = new Display();
 
@@ -64,11 +114,11 @@ int main(int argc, char** argv) {
 		InputHandler::HandleInputs(display, vcamera);
 
 		std::vector<glm::mat4> kinematic_chain =
-			robot_get_kinematic_chain(q, N_JOINTS);
+			robot_get_kinematic_chain(q_, N_JOINTS);
 
 		panda_model.Draw(panda_shader, vcamera, &kinematic_chain);
 
-		render_gui(display->WindowHandle(), q, q_MIN, q_MAX, N_JOINTS);
+		render_gui(display->WindowHandle(), q_, q_MIN_, q_MAX_, N_JOINTS);
 
 		display->Update();
 	}
